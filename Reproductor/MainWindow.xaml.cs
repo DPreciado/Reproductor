@@ -18,6 +18,8 @@ using Microsoft.Win32;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
+using System.Windows.Threading;
+
 namespace Reproductor
 {
     /// <summary>
@@ -25,6 +27,9 @@ namespace Reproductor
     /// </summary>
     public partial class MainWindow : Window
     {
+
+        DispatcherTimer timer;
+
         //Lector de archivos
         AudioFileReader reader;
         //comunicacion con la tarjeta de audio
@@ -38,6 +43,20 @@ namespace Reproductor
             btnReproducir.IsEnabled = false;
             btnDetener.IsEnabled = false;
             btnPausa.IsEnabled = false;
+
+            timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromMilliseconds(500);
+            timer.Tick += Timer_Tick;
+
+            
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            lblTiempoActual.Text = reader.CurrentTime.ToString().Substring(0, 8);
+
+            sldTiempo.Value = reader.CurrentTime.TotalSeconds;
+
         }
 
         void ListarDispositivosSalida()
@@ -91,7 +110,12 @@ namespace Reproductor
                     btnDetener.IsEnabled = true;
 
                     lblTiempoTotal.Text = reader.TotalTime.ToString().Substring(0,8);
-                    
+
+                    lblTiempoActual.Text = reader.CurrentTime.ToString().Substring(0, 8);
+
+                    sldTiempo.Maximum = reader.TotalTime.TotalSeconds;
+
+                    timer.Start();
                 }
             }
 
@@ -102,6 +126,7 @@ namespace Reproductor
         {
             reader.Dispose();
             output.Dispose();
+            timer.Stop();
         }
 
         private void BtnDetener_Click(object sender, RoutedEventArgs e)
@@ -124,6 +149,11 @@ namespace Reproductor
                 btnPausa.IsEnabled = false;
                 btnDetener.IsEnabled = true;
             }
+        }
+
+        private void SldTiempo_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+
         }
     }
 }
